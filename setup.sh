@@ -79,30 +79,11 @@ fi
 
 cd linux
 PATCH_DIR=${PATCH_DIR:-"../patches"}
-
-# Determine the patch directory
-if [[ $BRANCH == "LTS" ]]; then
-  SPESIFIC_PATCH_DIR="$PATCH_DIR/LTS"
-else
-  SPESIFIC_PATCH_DIR="$PATCH_DIR/MAIN"
+../apply-patches.py "$PATCH_DIR" "$BRANCH"
+if [ $? -ne 0 ]; then
+  echo "Failed to apply patches. Please check the patch directory and try again."
+  exit 1
 fi
-
-function loop_apply_patch {
-  for patch_file in "$1/"*.patch; do
-    git apply "$patch_file"
-
-    if [ $? != 0 ]; then
-      echo -e "Failed to apply $patch_file"
-      echo -e "Halting build!"
-      exit 1
-    fi
-  done
-}
-
-# Apply common patches
-loop_apply_patch $PATCH_DIR
-# Apply LTS/MAIN specific patches
-loop_apply_patch $SPESIFIC_PATCH_DIR
 
 cp ../wsl2_defconfig.$BRANCH ./arch/x86/configs/wsl2_defconfig
 
